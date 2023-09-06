@@ -1,27 +1,18 @@
-{ stdenv, lib, fetchurl, autoPatchelfHook, unzip, makeWrapper, setJavaClassPath
-, zulu
+{ version, openjdkVersion, hashes }:
+
+{ stdenv, lib, fetchurl, autoPatchelfHook, unzip, makeWrapper, setJavaClassPath,
 # minimum dependencies
-, alsa-lib, fontconfig, freetype, zlib, xorg
+alsa-lib, fontconfig, freetype, zlib, xorg,
 # runtime dependencies
-, cups
+cups,
 # runtime dependencies for GTK+ Look and Feel
-, gtkSupport ? stdenv.isLinux, cairo, glib, gtk3 }:
+gtkSupport ? stdenv.isLinux, cairo, glib, gtk3 }:
 
 let
-  version = "11.62.17";
-  openjdk = "11.0.18";
-
-  sha256_x64_linux = "sha256-b65oEbDzrrsUw+WaX94USBz/QS74yiMiGZPxqzMmmqs=";
-  sha256_x64_darwin = "sha256-nRRWTWiog8bRblmmPIPE5YibA34St3ZrJpZN91qEDUg=";
-  sha256_aarch64_darwin = "sha256-TBTrBxOfGo6MV+Md49P3sDfqVG1e+NraqfVbw9WTppk=";
-
   platform = if stdenv.isDarwin then "macosx" else "linux";
-  hash = if stdenv.isAarch64 && stdenv.isDarwin then
-    sha256_aarch64_darwin
-  else if stdenv.isDarwin then
-    sha256_x64_darwin
-  else
-    sha256_x64_linux;
+  # Safe vecause this is `parseDoubleFromSystem` in `lib.systems.elaborate`.
+  hash = hashes.${stdenv.hostPlatform.system};
+
   extension = if stdenv.isDarwin then "zip" else "tar.gz";
   architecture = if stdenv.isAarch64 then "aarch64" else "x64";
 
@@ -29,15 +20,17 @@ let
     ++ lib.optionals gtkSupport [ cairo glib gtk3 ];
   runtimeLibraryPath = lib.makeLibraryPath runtimeDependencies;
 
-in stdenv.mkDerivation {
-  inherit version openjdk platform hash extension;
+in stdenv.mkDerivation (self: {
+  inherit version platform hash extension;
+  # Kept the name the same for compatibility with Nixpkgs derivations.
+  openjdk = openjdkVersion;
 
   pname = "zulu";
 
   src = fetchurl {
     url =
-      "https://cdn.azul.com/zulu/bin/zulu${version}-ca-jdk${openjdk}-${platform}_${architecture}.${extension}";
-    sha256 = hash;
+      "https://cdn.azul.com/zulu/bin/zulu${version}-ca-jdk${openjdkVersion}-${platform}_${architecture}.${extension}";
+    inherit hash;
   };
 
   buildInputs = lib.optionals stdenv.isLinux [
@@ -90,7 +83,7 @@ in stdenv.mkDerivation {
       patchelf --add-needed libfontconfig.so {} \;
   '';
 
-  passthru = { home = zulu; };
+  passthru = { home = self.outPath; };
 
   meta = with lib; {
     homepage = "https://www.azul.com/products/zulu/";
@@ -100,8 +93,9 @@ in stdenv.mkDerivation {
       Certified builds of OpenJDK that can be deployed across multiple
       operating systems, containers, hypervisors and Cloud platforms.
     '';
-    maintainers = with maintainers; [ ];
-    platforms = [ "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ];
+    maintainers = with maintainers; [ spikespaz ];
+    # Logic in topmost `let` block should reflect this.
+    platforms = builtins.attrNames hashes;
     mainProgram = "java";
   };
-}
+})
