@@ -46,5 +46,8 @@ addon.late.local.gradle.kts
 .classpath
 .project
 
+# Nix
+/result
+
 # OSX Garbage
 *.DS_Store
