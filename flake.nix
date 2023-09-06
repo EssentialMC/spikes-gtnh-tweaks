@@ -23,8 +23,7 @@
       devShells = eachSystem (system:
         let pkgs = pkgsFor.${system};
         in {
-          default =
-            pkgs.mkShell { nativeBuildInputs = [ pkgs.temurin-17-bin ]; };
+          default = pkgs.mkShell { nativeBuildInputs = [ pkgs.zulu17 ]; };
         });
 
       formatter = eachSystem (system: nixfmt.packages.${system}.default);
