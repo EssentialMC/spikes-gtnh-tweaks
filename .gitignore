@@ -1,13 +1,4 @@
-.gradle
-.settings
-/.idea/
-/.vscode/
-/run/
-/build/
-/eclipse/
-.classpath
-.project
-/bin/
+# Game Files
 /config/
 /crash-reports/
 /logs/
@@ -22,16 +13,38 @@ server.properties
 servers.dat
 usercache.json
 whitelist.json
+
+# Project Builds
+.gradle
+.settings
+/run/
+/build/
+/bin/
 /out/
-*.iml
-*.ipr
-*.iws
+
+# Intermediate Sources
 src/main/resources/mixins.*([!.]).json
 *.bat
-*.DS_Store
 !gradlew.bat
 .factorypath
 addon.local.gradle
 addon.local.gradle.kts
 addon.late.local.gradle
 addon.late.local.gradle.kts
+
+# IntelliJ IDEA
+/.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+/.vscode/
+
+# Eclipse
+/eclipse/
+.classpath
+.project
+
+# OSX Garbage
+*.DS_Store
